@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charSet="utf-8" />
+    <title>Browser HTTP React</title>
+  </head>
+  <body>
+    <h1>React Router Example</h1>
+    <h2>A Sample Navigation</h2>
+    <a href="/foo/bar?bar=foo">Go to Foo Bar</a>
+    <a href="/bar/foo?foo=bar">Go to Bar Foo</a>
+    <hr />
+    <div id="root"></div>
+    
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="../dist/browser-http.js"></script>
+    <script type="text/javascript">
+      //define a basic react router plugin
+      //(we'll try to avoid JSX for now...)
+      const reactPlugin = function(root) {
+        function isReactElement(element) {
+          return element && element.$$typeof === Symbol.for('react.element')
+        }
+        
+        //this will be populated in a bit...
+        const plugin = {}
+        const NotFound = function() {
+          return React.createElement('div', {}, '404 - Not Found')
+        }
+
+        //main react component
+        const Response = function() {
+          //let's use a state hook
+          const [body, setBody] = React.useState(NotFound())
+
+          //a listener needs to go here
+          //because state hooks cannot be 
+          //used outside of a react component
+          plugin.handler = (req, res) => {
+            if (isReactElement(res.body)) {
+              setBody(res.body)
+              res.body = null
+            } else {
+              setBody(NotFound())
+            }
+          }
+
+          //return element here
+          return React.createElement('div', {}, body)
+        }
+
+        //go ahead and render the react to the root
+        if (typeof root === 'string') {
+          root = document.getElementById(root)
+        }
+        ReactDOM.render(React.createElement(Response), root)
+
+        //return the plugin
+        return function(req, res) {
+          if (typeof plugin.handler === 'function') {
+            plugin.handler(req, res)
+          }
+        }
+      }
+
+      //define some pages
+      const page1 = function(req, res) {
+        const App = function() {
+          const [counter, setCounter] = React.useState(600)
+          React.useEffect(() => {
+            const interval = setInterval(() => setCounter(counter => counter - 1), 1000)
+            return function() {
+              clearInterval(interval)
+            }
+          })
+          
+          return React.createElement('h1', {}, 
+            'Countdown ', 
+            counter
+          )
+        }
+
+        res.body = React.createElement(App)
+      }
+
+      const page2 = function(req, res) {
+        const App = function() {
+          const [counter, setCounter] = React.useState(0)
+
+          React.useEffect(() => {
+            const interval = setInterval(() => setCounter(counter => counter + 1), 1000)
+            return function() {
+              clearInterval(interval)
+            }
+          })
+          
+          return React.createElement('h1', {}, 
+            'Hello ', 
+            React.createElement(CounterText, { counter })
+          )
+        }
+
+        const CounterText = function({ counter }) {
+          return React.createElement('span', {}, counter)
+        }
+
+        res.body = React.createElement(App)
+      }
+
+      //now add it to the server
+      const plugin = reactPlugin('root')
+      http.createServer(function(req, res) {
+        const url = new URL(req.url)
+        //make a router
+        switch(url.pathname) {
+          case '/foo/bar':
+            page1(req, res);
+            break;
+          case '/bar/foo':
+            page2(req, res);
+            break;
+        }
+        
+        plugin(req, res)
+      }).listen()
+    </script>
+  </body>
+</html>
