@@ -8,7 +8,7 @@ a baby with push states...
 1. Add script
 
 ```html
-<script src="https://raw.githubusercontent.com/cblanquera/browser-http/dist/browser-http.js"></script>
+<script src="https://raw.githubusercontent.com/cblanquera/browser-http/main/dist/browser-http.js"></script>
 ```
 
 2. Add this somewhere in your script

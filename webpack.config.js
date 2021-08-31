@@ -1,9 +1,9 @@
 const path = require('path');
 module.exports = {
   mode: 'production',
-  optimization: {
-    minimize: false
-  },
+  //optimization: {
+  //  minimize: false
+  //},
   entry: './src/browser.ts',
   module: {
     rules: [{
