@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charSet="utf-8" />
+    <title>Browser HTTP Vanilla</title>
+  </head>
+  <body>
+    <h1>Node's http.createServer() on the browser</h1>
+    <pre><code>
+    const server = http.createServer(function(req, res) { ... });
+    server.listen();
+    </code></pre>
+    <p>This activates the push states. Then you can add HTML like the following.</p>
+    <h2>A Sample Link</h2>
+    <a href="/foo/bar?bar=foo">Go to Foo Bar</a>
+    <h2>A Sample Form</h2>
+    <form method="post" action="/bar/foo">
+      <label for="foo">Enter value of foo</label>
+      <br /><input name="foo" type="text" />
+      <br /><br /><label for="foo">Enter file of bar</label>
+      <br /><input name="bar" type="file" />
+      <br /><br /><button>Submit</button>
+    </form>
+    <hr />
+    <div id="results"></div>
+    <p>That's it!</p>
+    <ul>
+      <li>
+        The request is an extended version of the native 
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Request">window.Request</a>.
+      </li>
+      <li>
+        The response is an extended version of the native 
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Response">window.Response</a>.
+      </li>
+      <li>This means you can fetch a request as in <code>fetch(req)</code> to get info from the server.</li>
+    </ul>
+    <script src="../dist/browser-http.js"></script>
+    <script type="text/javascript">
+      const server = http.createServer(async function(req, res) {
+        const url = new URL(req.url)
+        if (url.pathname === '/foo/bar') {
+          document.getElementById('results').innerHTML = [
+            `<strong>Method:</strong> ${req.method}`,
+            `<strong>Path:</strong> ${url.pathname}`,
+            `<strong>Query:</strong> ${url.search.substr(1)}`,
+            '<strong>Code:</strong>',
+            '<pre><code>',
+            '    const server = http.createServer(async function(req, res) {',
+            '        const url = new URL(req.url)',
+            `        document.getElementById('results').innerHTML = [`,
+            '            `Method: ${req.method}`,',
+            '            `Path: ${url.pathname}`,',
+            '            `Query: ${url.search.substr(1)}`',
+            `        ].join('&lt;br /&gt;')`,
+            '    });',
+            '    server.listen()',
+            '</code></pre>'
+          ].join('<br />')
+        } else if (url.pathname === '/bar/foo') {
+          document.getElementById('results').innerHTML = [
+            `<strong>Method:</strong> ${req.method}`,
+            `<strong>Path:</strong> ${url.pathname}`,
+            `<strong>Data:</strong> <pre>${await req.text()}</pre>`,
+            '<strong>Code:</strong>',
+            '<pre><code>',
+            '    const server = http.createServer(async function(req, res) {',
+            '        const url = new URL(req.url)',
+            `        document.getElementById('results').innerHTML = [`,
+            '            `Method: ${req.method}`,',
+            '            `Path: ${url.pathname}`,',
+            '            `Data: ${await req.text()}`',
+            `        ].join('&lt;br /&gt;')`,
+            '    });',
+            '    server.listen()',
+            '</code></pre>'
+          ].join('<br />')
+        }
+      })
+      server.listen()
+    </script>
+  </body>
+</html>
