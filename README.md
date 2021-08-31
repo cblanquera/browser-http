@@ -103,6 +103,28 @@ const page1 = function(req, res) {
 }
 
 const page2 = function(req, res) {
+  const App = function() {
+    const [counter, setCounter] = React.useState(0)
+
+    React.useEffect(() => {
+      const interval = setInterval(() => setCounter(counter => counter + 1), 1000)
+      return function() {
+        clearInterval(interval)
+      }
+    })
+    
+    return React.createElement('h1', {}, 
+      'Countup ', 
+      React.createElement(CounterText, { counter })
+    )
+  }
+
+  const CounterText = function({ counter }) {
+    return React.createElement('span', {}, counter)
+  }
+
+  res.body = React.createElement(App)
+}
 ```
 
 Last thing is to add it to the main `http.Server` handler.
